@@ -1,45 +1,34 @@
+// Note that this script is compatible with Telerik Platform, not perse with Cordova CLI.
 var child_process = require('child_process'),
     fs = require('fs'),
     path = require('path');
 
 module.exports = function(context) {
     var IOS_DEPLOYMENT_TARGET = '8.0',
-        COMMENT_KEY = /_comment$/,
-        CORDOVA_VERSION = process.env.CORDOVA_VERSION;
+        COMMENT_KEY = /_comment$/;
 
-    run();
+  run();
 
     function run() {
-        var cordova_util = context.requireCordovaModule('cordova-lib/src/cordova/util'),
-            ConfigParser = CORDOVA_VERSION >= 6.0
-                ? context.requireCordovaModule('cordova-common').ConfigParser
-                : context.requireCordovaModule('cordova-lib/src/configparser/ConfigParser'),
-            projectRoot = cordova_util.isCordova(),
-            platform_ios,
-            xml = cordova_util.projectConfig(projectRoot),
-            cfg = new ConfigParser(xml),
-            projectName = cfg.name(),
-            platform_ios = CORDOVA_VERSION < 5.0
-                ? context.requireCordovaModule('cordova-lib/src/plugman/platforms')['ios']
-                : context.requireCordovaModule('cordova-lib/src/plugman/platforms/ios'),
-            iosPlatformPath = path.join(projectRoot, 'platforms', 'ios'),
-            iosProjectFilesPath = path.join(iosPlatformPath, projectName),
-            xcconfigPath = path.join(iosPlatformPath, 'cordova', 'build.xcconfig'),
+        var projectRoot = context.opts.projectRoot,
+            xcodeProjectPath = fs.readdirSync(projectRoot).filter(function (file) { return ~file.indexOf('.xcodeproj') && fs.statSync(path.join(projectRoot, file)).isDirectory(); })[0],
+            projectName = xcodeProjectPath.slice(0, -'.xcodeproj'.length),
+            iosProjectFilesPath = path.join(projectRoot, projectName),
+            xcconfigPath = path.join(projectRoot, 'cordova', 'build.xcconfig'),
             xcconfigContent,
             projectFile,
-            xcodeProject,
-            bridgingHeaderPath;
-
-        projectFile = platform_ios.parseProjectFile(iosPlatformPath);
-        xcodeProject = projectFile.xcode;
+            bridgingHeaderPath,
+            projectFile = context.opts.cordova.project.parseProjectFile(projectRoot),
+            xcodeProject = projectFile.xcode;
 
         if (fs.existsSync(xcconfigPath)) {
             xcconfigContent = fs.readFileSync(xcconfigPath, 'utf-8');
         }
 
         bridgingHeaderPath = getBridgingHeader(projectName, xcconfigContent, xcodeProject);
-        if(bridgingHeaderPath) {
-            bridgingHeaderPath = path.join(iosPlatformPath, bridgingHeaderPath);
+
+        if (bridgingHeaderPath) {
+            bridgingHeaderPath = path.join(projectRoot, bridgingHeaderPath);
         } else {
             bridgingHeaderPath = createBridgingHeader(xcodeProject, projectName, iosProjectFilesPath);
         }
@@ -47,7 +36,8 @@ module.exports = function(context) {
         getExistingBridgingHeaders(iosProjectFilesPath, function (headers) {
             importBridgingHeaders(bridgingHeaderPath, headers);
             var configurations = nonComments(xcodeProject.pbxXCBuildConfigurationSection()),
-            config, buildSettings;
+                config,
+                buildSettings;
 
             for (config in configurations) {
                 buildSettings = configurations[config].buildSettings;
@@ -55,10 +45,10 @@ module.exports = function(context) {
                 buildSettings['EMBEDDED_CONTENT_CONTAINS_SWIFT'] = "YES";
                 buildSettings['LD_RUNPATH_SEARCH_PATHS'] = '"@executable_path/Frameworks"'
             }
-            console.log('IOS project now has deployment target set as:[' + IOS_DEPLOYMENT_TARGET + '] ...');
-            console.log('IOS project option EMBEDDED_CONTENT_CONTAINS_SWIFT set as:[YES] ...');
-            console.log('IOS project swift_objc Bridging-Header set to:[' + bridgingHeaderPath + '] ...');
-            console.log('IOS project Runpath Search Paths set to: @executable_path/Frameworks ...');
+            console.error('IOS project now has deployment target set as:[' + IOS_DEPLOYMENT_TARGET + '] ...');
+            console.error('IOS project option EMBEDDED_CONTENT_CONTAINS_SWIFT set as:[YES] ...');
+            console.error('IOS project swift_objc Bridging-Header set to:[' + bridgingHeaderPath + '] ...');
+            console.error('IOS project Runpath Search Paths set to: @executable_path/Frameworks ...');
 
             projectFile.write();
         });
@@ -104,7 +94,7 @@ module.exports = function(context) {
             "#import <Cordova/CDV.h>"]
 
         //fs.openSync(newBHPath, 'w');
-        console.log('Creating new Bridging-Header.h at path: ', newBHPath);
+        console.error('Creating new Bridging-Header.h at path: ', newBHPath);
         fs.writeFileSync(newBHPath, content.join("\n"), { encoding: 'utf-8', flag: 'w' });
         xcodeProject.addHeaderFile("Bridging-Header.h");
         setBridgingHeader(xcodeProject, path.join(projectName, "Plugins", "Bridging-Header.h"));
@@ -142,7 +132,7 @@ module.exports = function(context) {
                     content += "\n";
                 }
                 content += "#import \""+header+"\"\n"
-                console.log('Importing ' + header + ' into main bridging-header at: ' + mainBridgingHeader);
+                console.error('Importing ' + header + ' into main bridging-header at: ' + mainBridgingHeader);
             }
         });
         fs.writeFileSync(mainBridgingHeader, content, 'utf-8');
