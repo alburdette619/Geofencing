@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0" xmlns:m2="http://schemas.microsoft.com/appx/2013/manifest" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-geofence" version="0.5.0.1">
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0" xmlns:m2="http://schemas.microsoft.com/appx/2013/manifest" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-geofence" version="0.6.0">
     <name>Geofencing</name>
     <description>Geofencing plugin</description>
     <license>Apache 2.0</license>
@@ -19,6 +19,7 @@
         <clobbers target="geofence" />
     </js-module>
 
+    <dependency id="cordova-plugin-compat" version="^1.0.0" />
     <dependency id="es6-promise-plugin" />
 
     <!-- android -->
@@ -64,15 +65,13 @@
                     <action android:name="android.intent.action.BOOT_COMPLETED" />
                 </intent-filter>
             </receiver>
-
         </config-file>
 
         <config-file target="AndroidManifest.xml" parent="/manifest">
             <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
             <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
             <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-			<uses-permission android:name="android.permission.VIBRATE" />
-			<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.VIBRATE" />
         </config-file>
 
     </platform>
@@ -114,10 +113,10 @@
     <platform name="ios">
         <hook type="after_plugin_install" src="hooks/add_swift_support.js" />
         <config-file target="*-Info.plist" parent="NSLocationAlwaysUsageDescription">
-            <string>This App Would Like to Use Your Current Location Even In Background.</string>
+            <string>${EXECUTABLE_NAME} Would Like to Use Your Current Location Even In Background.</string>
         </config-file>
         <config-file target="*-Info.plist" parent="NSLocationWhenInUseUsageDescription">
-            <string>This App Would like to Use Your Current Location When In Use.</string>
+            <string>${EXECUTABLE_NAME} Would Like to Use Your Current Location When In Use.</string>
         </config-file>
         <config-file target="*-Info.plist" parent="UIBackgroundModes">
             <array>
