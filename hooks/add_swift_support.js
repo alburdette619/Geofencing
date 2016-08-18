@@ -16,7 +16,6 @@ module.exports = function(context) {
             iosProjectFilesPath = path.join(projectRoot, projectName),
             xcconfigPath = path.join(projectRoot, 'cordova', 'build.xcconfig'),
             xcconfigContent,
-            projectFile,
             bridgingHeaderPath,
             projectFile = context.opts.cordova.project.parseProjectFile(projectRoot),
             xcodeProject = projectFile.xcode;
