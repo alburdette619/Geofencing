@@ -21,6 +21,7 @@
 
     <dependency id="cordova-plugin-compat" version="^1.0.0" />
     <dependency id="es6-promise-plugin" />
+    <dependency id="cordova-plugin-app-event" />
 
     <!-- android -->
     <platform name="android">
