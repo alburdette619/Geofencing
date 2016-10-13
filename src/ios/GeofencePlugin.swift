@@ -25,18 +25,14 @@ func log(messages: [String]) {
 }
 
 @available(iOS 8.0, *)
-@objc(HWPGeofencePlugin) class GeofencePlugin : CDVPlugin {
+
+//Add APPAppEventDelegate to plugins interface
+@objc(HWPGeofencePlugin) class GeofencePlugin : CDVPlugin, APPAppEventDelegate {
     lazy var geoNotificationManager = GeoNotificationManager()
     let priority = DISPATCH_QUEUE_PRIORITY_DEFAULT
 
+    // According to cordova-plugin-app-event documentation, no need to add observer for non-plugin specific events, just the method
     override func pluginInitialize () {
-        NSNotificationCenter.defaultCenter().addObserver(
-            self,
-            selector: #selector(GeofencePlugin.didReceiveLocalNotification(_:)),
-            name: CDVLocalNotification,
-            object: nil
-        )
-
         NSNotificationCenter.defaultCenter().addObserver(
             self,
             selector: #selector(GeofencePlugin.didReceiveTransition(_:)),
@@ -148,6 +144,16 @@ func log(messages: [String]) {
             let js = "setTimeout('geofence.onTransitionReceived([" + geoNotificationString + "])',0)"
 
             evaluateJs(js)
+        }
+    }
+
+    // added didFinishLaunchingWithOptions method to call didReceiveLocalNotification on cold start from notification
+    func didFinishLaunchingWithOptions(notification: NSNotification) {
+        log("didFinishLaunchingWithOptions")   
+        let launchOptions = notification.userInfo!
+        let localNotification = (launchOptions[UIApplicationLaunchOptionsLocalNotificationKey] as! BooleanType)
+        if localNotification {
+            self.didReceiveLocalNotification(notification)
         }
     }
 
