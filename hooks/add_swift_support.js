@@ -5,6 +5,7 @@ var child_process = require('child_process'),
 
 module.exports = function(context) {
     var IOS_DEPLOYMENT_TARGET = '8.0',
+        SWIFT_VERSION = '2.3',
         COMMENT_KEY = /_comment$/;
 
   run();
@@ -42,10 +43,12 @@ module.exports = function(context) {
                 buildSettings = configurations[config].buildSettings;
                 buildSettings['IPHONEOS_DEPLOYMENT_TARGET'] = IOS_DEPLOYMENT_TARGET;
                 buildSettings['EMBEDDED_CONTENT_CONTAINS_SWIFT'] = "YES";
-                buildSettings['LD_RUNPATH_SEARCH_PATHS'] = '"@executable_path/Frameworks"'
+                buildSettings['SWIFT_VERSION'] = SWIFT_VERSION;
+                buildSettings['LD_RUNPATH_SEARCH_PATHS'] = '"@executable_path/Frameworks"';
             }
             console.error('IOS project now has deployment target set as:[' + IOS_DEPLOYMENT_TARGET + '] ...');
             console.error('IOS project option EMBEDDED_CONTENT_CONTAINS_SWIFT set as:[YES] ...');
+            console.error('IOS project option SWIFT_VERSION set as:' + SWIFT_VERSION + ' ...');
             console.error('IOS project swift_objc Bridging-Header set to:[' + bridgingHeaderPath + '] ...');
             console.error('IOS project Runpath Search Paths set to: @executable_path/Frameworks ...');
 
